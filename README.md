@@ -21,5 +21,5 @@ This package provides the `C++` src for <a href="https://github.com/dengwirda/ji
     * Python 3 (with: numpy, scipy, pathlib).
     * Paraview.
 
-The tutorail covers a range of different global, regional and coastal meshing applications --- setting up a number of `Python` / `MATLAB` example programs for `JIGSAW`, developing strategies for visualisation, post-processing, and more! 
+The tutorial covers a range of different global, regional and coastal meshing applications --- setting up a number of `Python` / `MATLAB` example programs for `JIGSAW`, developing strategies for visualisation, post-processing, and more! 
 
