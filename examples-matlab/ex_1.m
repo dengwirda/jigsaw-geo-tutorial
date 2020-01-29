@@ -1,26 +1,26 @@
 function ex_1
 % DEMO-1: generate a uniform resolution (150KM) global grid.
 
-    addpath('../jigsaw-matlab') ;
-
     initjig;                            % load jigsaw
 
 %------------------------------------ setup files for JIGSAW
 
     rootpath = fileparts( ...
-        mfilename( 'fullpath' ) ) ;
+        mfilename( 'fullpath' )) ;
+    rootpath = ...
+        fullfile(rootpath, '..') ;
 
     opts.geom_file = ...                % domain file
         fullfile(rootpath,...
-        'cache','globe-geom.msh') ;
+            'cache', 'eSPH.msh') ;
     
     opts.jcfg_file = ...                % config file
         fullfile(rootpath,...
-        'cache','globe.jig') ;
+            'cache', 'eSPH.jig') ;
     
     opts.mesh_file = ...                % output file
         fullfile(rootpath,...
-        'cache','globe-mesh.msh') ;
+            'cache', 'mesh.msh') ;
     
 %------------------------------------ define JIGSAW geometry
 
@@ -41,7 +41,7 @@ function ex_1
     opts.optm_qtol = +1.0E-05 ;
     
     mesh = jigsaw(opts) ;
- 
+    
 %------------------------------------ display JIGSAW outputs
   
     topo = loadmsh( ...

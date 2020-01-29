@@ -1,114 +1,119 @@
 
-from pathlib import Path
 import os
 import numpy as np
 from scipy import interpolate
 
 import jigsawpy
 
+
 def ex_6():
 
-# DEMO-6: generate a multi-resolution grid, with local refi-
-# nement along coastlines and shallow ridges. Global grid 
-# resolution is 150KM, background resolution is 99KM and the 
+# DEMO-6: generate a multi-resolution mesh, via local refin-
+# ement along coastlines and shallow ridges. Global grid
+# resolution is 150KM, background resolution is 99KM and the
 # min. adaptive resolution is 33KM.
 
-    src_path = os.path.join(
+    dst_path = \
         os.path.abspath(
-        os.path.dirname(__file__)),"files")
+            os.path.dirname(__file__))
 
-    dst_path = os.path.join(
-        os.path.abspath(
-        os.path.dirname(__file__)),"cache")
+    src_path = \
+        os.path.join(dst_path, "..", "files")
+    dst_path = \
+        os.path.join(dst_path, "..", "cache")
 
 
     opts = jigsawpy.jigsaw_jig_t()
 
     topo = jigsawpy.jigsaw_msh_t()
-    
+
     geom = jigsawpy.jigsaw_msh_t()
-    hfun = jigsawpy.jigsaw_msh_t()
     mesh = jigsawpy.jigsaw_msh_t()
+    hmat = jigsawpy.jigsaw_msh_t()
 
 #------------------------------------ setup files for JIGSAW
 
     opts.geom_file = \
-        str(Path(dst_path)/"earth.msh") # GEOM file
-        
+        os.path.join(src_path, "eSPH.msh")
+
     opts.jcfg_file = \
-        str(Path(dst_path)/"globe.jig") # JCFG file
-    
-    opts.hfun_file = \
-        str(Path(dst_path)/"space.msh") # HFUN file
+        os.path.join(dst_path, "eSPH.jig")
 
     opts.mesh_file = \
-        str(Path(dst_path)/"globe.msh") # MESH file
+        os.path.join(dst_path, "mesh.msh")
+
+    opts.hfun_file = \
+        os.path.join(dst_path, "spac.msh")
 
 #------------------------------------ define JIGSAW geometry
 
     geom.mshID = "ellipsoid-mesh"
-    geom.radii = np.full(3, 6371., 
-        dtype=jigsawpy.jigsaw_msh_t.REALS_t)
-    
+    geom.radii = np.full(
+        3, 6.371E+003, dtype=geom.REALS_t)
+
     jigsawpy.savemsh(opts.geom_file, geom)
 
 #------------------------------------ define spacing pattern
 
-    jigsawpy.loadmsh(
-        str(Path(src_path)/"topo.msh"), topo)
+    jigsawpy.loadmsh(os.path.join(
+        src_path, "topo.msh"), topo)
 
-    hfun.mshID = "ellipsoid-grid"
-    hfun.radii = geom.radii
+    hmat.mshID = "ellipsoid-grid"
+    hmat.radii = geom.radii
 
-    hfun.xgrid = topo.xgrid * np.pi/180.
-    hfun.ygrid = topo.ygrid * np.pi/180.
-   
-    dhdx = +.05
+    hmat.xgrid = topo.xgrid * np.pi / 180.
+    hmat.ygrid = topo.ygrid * np.pi / 180.
 
-    hfun.slope = np.full(
-        topo.value.shape, dhdx, 
-        dtype=jigsawpy.jigsaw_msh_t.REALS_t)
+    hfn0 = +150.                        # global spacing
+    hfn2 = +33.                         # adapt. spacing
+    hfn3 = +99.                         # arctic spacing
 
-    hfn0 = +150.                    # global spacing
-    hfn2 = + 33.                    # adapt. spacing
-    hfn3 = + 99.                    # arctic spacing
-       
-    hfun.value = np.sqrt(
-        np.maximum(-topo.value, +0.0))
+    hmat.value = np.sqrt(
+        np.maximum(-topo.value, 0.0))
 
-    hfun.value = \
-        np.maximum(hfun.value, hfn2)
-    hfun.value = \
-        np.minimum(hfun.value, hfn3)
+    hmat.value = \
+        np.maximum(hmat.value, hfn2)
+    hmat.value = \
+        np.minimum(hmat.value, hfn3)
 
-    hfun.value[hfun.ygrid < 45.*np.pi/180.] = hfn0
-  
-    jigsawpy.savemsh(opts.hfun_file, hfun)
+    mask = hmat.ygrid < 40. * np.pi / 180.
+
+    hmat.value[mask] = hfn0
 
 #------------------------------------ set HFUN grad.-limiter
 
-    jigsawpy.cmd.marche(opts, hfun)
+    hmat.slope = np.full(               # |dH/dx| limits
+        topo.value.shape,
+        +0.050, dtype=hmat.REALS_t)
 
-#------------------------------------ make mesh using JIGSAW 
-    
+    jigsawpy.savemsh(opts.hfun_file, hmat)
+
+    jigsawpy.cmd.marche(opts, hmat)
+
+#------------------------------------ make mesh using JIGSAW
+
     opts.hfun_scal = "absolute"
-    opts.hfun_hmax = float("inf")   # null HFUN limits
+    opts.hfun_hmax = float("inf")       # null HFUN limits
     opts.hfun_hmin = float(+0.00)
-    
-    opts.mesh_dims = +2             # 2-dim. simplexes
-    
-    opts.optm_qlim = +9.5E-01       # tighter opt. tol
-    opts.optm_iter = +32    
+
+    opts.mesh_dims = +2                 # 2-dim. simplexes
+
+    opts.optm_qlim = +9.5E-01           # tighter opt. tol
+    opts.optm_iter = +32
     opts.optm_qtol = +1.0E-05
 
-    jigsawpy.cmd.tetris(opts, 2, mesh)
+    jigsawpy.cmd.tetris(opts, 3, mesh)
+
+    scr2 = jigsawpy.triscr2(            # "quality" metric
+        mesh.point["coord"],
+        mesh.tria3["index"])
 
 #------------------------------------ save mesh for Paraview
 
     apos = jigsawpy.R3toS2(
         geom.radii, mesh.point["coord"][:])
 
-    apos = apos * 180./np.pi
+    apos = apos * 180. / np.pi
 
     zfun = interpolate.RectBivariateSpline(
         topo.ygrid, topo.xgrid, topo.value)
@@ -116,28 +121,27 @@ def ex_6():
     mesh.value = zfun(
         apos[:, 1], apos[:, 0], grid=False)
 
+    cell = mesh.tria3["index"]
+
     zmsk = \
-    mesh.value[mesh.tria3["index"][:,0]] + \
-    mesh.value[mesh.tria3["index"][:,1]] + \
-    mesh.value[mesh.tria3["index"][:,2]]
+        mesh.value[cell[:, 0]] + \
+        mesh.value[cell[:, 1]] + \
+        mesh.value[cell[:, 2]]
     zmsk = zmsk / +3.0
 
     mesh.tria3 = mesh.tria3[zmsk < +0.]
 
-    
-    print("Writing ex_f.vtk file.")
+    print("Saving to ../cache/case_6a.vtk")
 
-    jigsawpy.savevtk(
-        str(Path(dst_path)/"sp_f.vtk"), hfun)
+    jigsawpy.savevtk(os.path.join(
+        dst_path, "case_6a.vtk"), mesh)
 
-    jigsawpy.savevtk(
-        str(Path(dst_path)/"ex_f.vtk"), mesh)
+    print("Saving to ../cache/case_6b.vtk")
 
+    jigsawpy.savevtk(os.path.join(
+        dst_path, "case_6b.vtk"), hmat)
 
     return
 
 
 if (__name__ == "__main__"): ex_6()
-
-
-

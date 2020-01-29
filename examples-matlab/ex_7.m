@@ -1,26 +1,26 @@
 function ex_7
 % DEMO-7: setup simple piecewise linear geometry definitions
 
-    addpath('../jigsaw-matlab') ;
-
     initjig;                            % load jigsaw
 
 %------------------------------------ setup files for JIGSAW
 
     rootpath = fileparts( ...
-        mfilename( 'fullpath' ) ) ;
+        mfilename( 'fullpath' )) ;
+    rootpath = ...
+        fullfile(rootpath, '..') ;
 
     opts.geom_file = ...                % domain file
         fullfile(rootpath,...
-        'cache','pslg-geom.msh') ;
+            'cache', 'pslg.msh') ;
     
     opts.jcfg_file = ...                % config file
         fullfile(rootpath,...
-        'cache','pslg.jig') ;
+            'cache', 'pslg.jig') ;
 
     opts.mesh_file = ...                % output file
         fullfile(rootpath,...
-        'cache','pslg-mesh.msh') ;
+            'cache', 'mesh.msh') ;
     
 %------------------------------------ define JIGSAW geometry
 

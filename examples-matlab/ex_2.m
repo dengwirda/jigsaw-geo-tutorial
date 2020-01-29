@@ -3,30 +3,30 @@ function ex_2
 % high-resolution "patch" embedded in a uniform background 
 % grid.
 
-    addpath('../jigsaw-matlab') ;
-
     initjig;                            % load jigsaw
 
 %------------------------------------ setup files for JIGSAW
 
     rootpath = fileparts( ...
-        mfilename( 'fullpath' ) ) ;
+        mfilename( 'fullpath' )) ;
+    rootpath = ...
+        fullfile(rootpath, '..') ;
 
     opts.geom_file = ...                % domain file
         fullfile(rootpath,...
-        'cache','globe-geom.msh') ;
+            'cache', 'eSPH.msh') ;
     
     opts.jcfg_file = ...                % config file
         fullfile(rootpath,...
-        'cache','globe.jig') ;
+            'cache', 'eSPH.jig') ;
     
     opts.hfun_file = ...                % sizing file
         fullfile(rootpath,...
-        'cache','globe-hfun.msh') ;
+            'cache', 'spac.msh') ;
 
     opts.mesh_file = ...                % output file
         fullfile(rootpath,...
-        'cache','globe-mesh.msh') ;
+            'cache', 'mesh.msh') ;
     
 %------------------------------------ define JIGSAW geometry
 
@@ -50,10 +50,13 @@ function ex_2
         hfun.point.coord{1}, ...
         hfun.point.coord{2}) ;
 
-    hfun.value = +150. - 100. * exp( ...
-    -1.5*((xmat+1.).^2+(ymat-.5).^2).^2 ...
-              ) ;
+    hfun.value = +150. - 100. * exp( -( ...
+        +1.5 * (xmat + 1.0).^2 ...
+        +1.5 * (ymat - 0.5).^2).^4) ;
    
+   %hfun.value = ...
+   %    +150.0 - 100.0 * sin(ymat).^2 ;
+
     savemsh (opts.hfun_file,hfun) ;
     
 %------------------------------------ build mesh via JIGSAW! 
@@ -68,8 +71,8 @@ function ex_2
     opts.optm_iter = +32;
     opts.optm_qtol = +1.0E-05 ;
     
-    mesh = jigsaw(opts) ;
- 
+    mesh = tetris(opts, +3) ;
+    
 %------------------------------------ display JIGSAW outputs
   
     topo = loadmsh( ...

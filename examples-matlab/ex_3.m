@@ -2,30 +2,30 @@ function ex_3
 % DEMO-3: generate a grid based on the "HR" spacing pattern,
 % developed by the FESOM team at AWI.
 
-    addpath('../jigsaw-matlab') ;
-
     initjig;                            % load jigsaw
 
 %------------------------------------ setup files for JIGSAW
 
     rootpath = fileparts( ...
-        mfilename( 'fullpath' ) ) ;
+        mfilename( 'fullpath' )) ;
+    rootpath = ...
+        fullfile(rootpath, '..') ;
 
     opts.geom_file = ...                % domain file
         fullfile(rootpath,...
-        'cache','globe-geom.msh') ;
+            'cache', 'eSPH.msh') ;
     
     opts.jcfg_file = ...                % config file
         fullfile(rootpath,...
-        'cache','globe.jig') ;
+            'cache', 'eSPH.jig') ;
     
     opts.hfun_file = ...                % sizing file
         fullfile(rootpath,...
-        'cache','globe-hfun.msh') ;
+            'cache', 'spac.msh') ;
 
     opts.mesh_file = ...                % output file
         fullfile(rootpath,...
-        'cache','globe-mesh.msh') ;
+            'cache', 'mesh.msh') ;
     
 %------------------------------------ define JIGSAW geometry
 

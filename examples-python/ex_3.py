@@ -1,29 +1,30 @@
 
-from pathlib import Path
 import os
 import numpy as np
 from scipy import interpolate
 
 import jigsawpy
 
+
 def ex_3():
 
 # DEMO-3: generate a grid based on the "HR" spacing pattern,
 # developed by the FESOM team at AWI.
 
-    src_path = os.path.join(
+    dst_path = \
         os.path.abspath(
-        os.path.dirname(__file__)),"files")
+            os.path.dirname(__file__))
 
-    dst_path = os.path.join(
-        os.path.abspath(
-        os.path.dirname(__file__)),"cache")
+    src_path = \
+        os.path.join(dst_path, "..", "files")
+    dst_path = \
+        os.path.join(dst_path, "..", "cache")
 
 
     opts = jigsawpy.jigsaw_jig_t()
 
     topo = jigsawpy.jigsaw_msh_t()
-    
+
     geom = jigsawpy.jigsaw_msh_t()
     hfun = jigsawpy.jigsaw_msh_t()
     mesh = jigsawpy.jigsaw_msh_t()
@@ -31,59 +32,59 @@ def ex_3():
 #------------------------------------ setup files for JIGSAW
 
     opts.geom_file = \
-        str(Path(dst_path)/"earth.msh") # GEOM file
-        
+        os.path.join(src_path, "eSPH.msh")
+
     opts.jcfg_file = \
-        str(Path(dst_path)/"globe.jig") # JCFG file
-    
-    opts.hfun_file = \
-        str(Path(dst_path)/"space.msh") # HFUN file
+        os.path.join(dst_path, "eSPH.jig")
 
     opts.mesh_file = \
-        str(Path(dst_path)/"globe.msh") # MESH file
+        os.path.join(dst_path, "mesh.msh")
+
+    opts.hfun_file = \
+        os.path.join(dst_path, "spac.msh")
 
 #------------------------------------ define JIGSAW geometry
 
     geom.mshID = "ellipsoid-mesh"
-    geom.radii = np.full(3, 6371., 
-        dtype=jigsawpy.jigsaw_msh_t.REALS_t)
-    
+    geom.radii = np.full(
+        3, 6.371E+003, dtype=geom.REALS_t)
+
     jigsawpy.savemsh(opts.geom_file, geom)
 
 #------------------------------------ define spacing pattern
 
-    jigsawpy.loadmsh(
-    str(Path(src_path)/"f_hr.msh") , hfun)
-   
-    hfun.value = +3. * hfun.value   # for fast example
+    jigsawpy.loadmsh(os.path.join(
+        src_path, "f_hr.msh"), hfun)
+
+    hfun.value = +3. * hfun.value       # for fast example
 
     jigsawpy.savemsh(opts.hfun_file, hfun)
 
-#------------------------------------ make mesh using JIGSAW 
-    
+#------------------------------------ make mesh using JIGSAW
+
     opts.hfun_scal = "absolute"
-    opts.hfun_hmax = float("inf")   # null HFUN limits
+    opts.hfun_hmax = float("inf")       # null HFUN limits
     opts.hfun_hmin = float(+0.00)
-    
-    opts.mesh_dims = +2             # 2-dim. simplexes
-    
-    opts.optm_qlim = +9.5E-01       # tighter opt. tol
-    opts.optm_iter = +32    
+
+    opts.mesh_dims = +2                 # 2-dim. simplexes
+
+    opts.optm_qlim = +9.5E-01           # tighter opt. tol
+    opts.optm_iter = +32
     opts.optm_qtol = +1.0E-05
-    
+
     jigsawpy.cmd.jigsaw(opts, mesh)
 
 #------------------------------------ save mesh for Paraview
 
-    jigsawpy.loadmsh(
-        str(Path(src_path)/"topo.msh"), topo)
-   
+    jigsawpy.loadmsh(os.path.join(
+        src_path, "topo.msh"), topo)
+
 #------------------------------------ a very rough land mask
 
     apos = jigsawpy.R3toS2(
         geom.radii, mesh.point["coord"][:])
 
-    apos = apos * 180./np.pi
+    apos = apos * 180. / np.pi
 
     zfun = interpolate.RectBivariateSpline(
         topo.ygrid, topo.xgrid, topo.value)
@@ -91,28 +92,27 @@ def ex_3():
     mesh.value = zfun(
         apos[:, 1], apos[:, 0], grid=False)
 
+    cell = mesh.tria3["index"]
+
     zmsk = \
-    mesh.value[mesh.tria3["index"][:,0]] + \
-    mesh.value[mesh.tria3["index"][:,1]] + \
-    mesh.value[mesh.tria3["index"][:,2]]
+        mesh.value[cell[:, 0]] + \
+        mesh.value[cell[:, 1]] + \
+        mesh.value[cell[:, 2]]
     zmsk = zmsk / +3.0
 
     mesh.tria3 = mesh.tria3[zmsk < +0.]
 
-    
-    print("Writing ex_c.vtk file.")
+    print("Saving to ../cache/case_3a.vtk")
 
-    jigsawpy.savevtk(
-        str(Path(dst_path)/"sp_c.vtk"), hfun)
+    jigsawpy.savevtk(os.path.join(
+        dst_path, "case_3a.vtk"), mesh)
 
-    jigsawpy.savevtk(
-        str(Path(dst_path)/"ex_c.vtk"), mesh)
+    print("Saving to ../cache/case_3b.vtk")
 
+    jigsawpy.savevtk(os.path.join(
+        dst_path, "case_3b.vtk"), hfun)
 
     return
 
 
 if (__name__ == "__main__"): ex_3()
-
-
-

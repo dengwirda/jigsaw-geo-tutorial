@@ -1,30 +1,31 @@
 
-from pathlib import Path
 import os
 import numpy as np
 from scipy import interpolate
 
 import jigsawpy
 
+
 def ex_2():
 
-# DEMO-2: generate a regionally-refined global grid with a 
-# high-resolution "patch" embedded in a uniform background 
-# grid.
+# DEMO-2: generate a regionally-refined global grid with a
+# high-resolution 37.5km patch embedded in a uniform 150km
+# background grid.
 
-    src_path = os.path.join(
+    dst_path = \
         os.path.abspath(
-        os.path.dirname(__file__)),"files")
+            os.path.dirname(__file__))
 
-    dst_path = os.path.join(
-        os.path.abspath(
-        os.path.dirname(__file__)),"cache")
+    src_path = \
+        os.path.join(dst_path, "..", "files")
+    dst_path = \
+        os.path.join(dst_path, "..", "cache")
 
 
     opts = jigsawpy.jigsaw_jig_t()
 
     topo = jigsawpy.jigsaw_msh_t()
-    
+
     geom = jigsawpy.jigsaw_msh_t()
     hfun = jigsawpy.jigsaw_msh_t()
     mesh = jigsawpy.jigsaw_msh_t()
@@ -32,23 +33,23 @@ def ex_2():
 #------------------------------------ setup files for JIGSAW
 
     opts.geom_file = \
-        str(Path(dst_path)/"earth.msh") # GEOM file
-        
+        os.path.join(src_path, "eSPH.msh")
+
     opts.jcfg_file = \
-        str(Path(dst_path)/"globe.jig") # JCFG file
-    
-    opts.hfun_file = \
-        str(Path(dst_path)/"space.msh") # HFUN file
+        os.path.join(dst_path, "eSPH.jig")
 
     opts.mesh_file = \
-        str(Path(dst_path)/"globe.msh") # MESH file
+        os.path.join(dst_path, "mesh.msh")
+
+    opts.hfun_file = \
+        os.path.join(dst_path, "spac.msh")
 
 #------------------------------------ define JIGSAW geometry
 
     geom.mshID = "ellipsoid-mesh"
-    geom.radii = np.full(3, 6371., 
-        dtype=jigsawpy.jigsaw_msh_t.REALS_t)
-    
+    geom.radii = np.full(
+        3, 6.371E+003, dtype=geom.REALS_t)
+
     jigsawpy.savemsh(opts.geom_file, geom)
 
 #------------------------------------ define spacing pattern
@@ -56,46 +57,50 @@ def ex_2():
     hfun.mshID = "ellipsoid-grid"
     hfun.radii = geom.radii
 
-    hfun.xgrid = np.linspace( 
-        -1.*np.pi, +1.*np.pi, 180)
-                    
+    hfun.xgrid = np.linspace(
+        -1. * np.pi, +1. * np.pi, 360)
+
     hfun.ygrid = np.linspace(
-        -.5*np.pi, +.5*np.pi, 90 )
+        -.5 * np.pi, +.5 * np.pi, 180)
 
     xmat, ymat = \
         np.meshgrid(hfun.xgrid, hfun.ygrid)
 
-    hfun.value = +150. - 100. * np.exp(
-        -1.5*((xmat+1.)**2+(ymat-.5)**2)**2
-              )
-   
+    hfun.value = +150. - 112.5 * np.exp(-(
+        +1.5 * (xmat + 1.0) ** 2 +
+        +1.5 * (ymat - 0.5) ** 2) ** 4)
+
     jigsawpy.savemsh(opts.hfun_file, hfun)
 
-#------------------------------------ make mesh using JIGSAW 
-    
+#------------------------------------ make mesh using JIGSAW
+
     opts.hfun_scal = "absolute"
-    opts.hfun_hmax = float("inf")   # null HFUN limits
+    opts.hfun_hmax = float("inf")       # null HFUN limits
     opts.hfun_hmin = float(+0.00)
-    
-    opts.mesh_dims = +2             # 2-dim. simplexes
-    
-    opts.optm_qlim = +9.5E-01       # tighter opt. tol
-    opts.optm_iter = +32    
+
+    opts.mesh_dims = +2                 # 2-dim. simplexes
+
+    opts.optm_qlim = +9.5E-01           # tighter opt. tol
+    opts.optm_iter = +32
     opts.optm_qtol = +1.0E-05
-    
-    jigsawpy.cmd.jigsaw(opts, mesh)
+
+    jigsawpy.cmd.tetris(opts, 3, mesh)
+
+    scr2 = jigsawpy.triscr2(            # "quality" metric
+        mesh.point["coord"],
+        mesh.tria3["index"])
 
 #------------------------------------ save mesh for Paraview
 
-    jigsawpy.loadmsh(
-        str(Path(src_path)/"topo.msh"), topo)
-   
+    jigsawpy.loadmsh(os.path.join(
+        src_path, "topo.msh"), topo)
+
 #------------------------------------ a very rough land mask
 
     apos = jigsawpy.R3toS2(
         geom.radii, mesh.point["coord"][:])
 
-    apos = apos * 180./np.pi
+    apos = apos * 180. / np.pi
 
     zfun = interpolate.RectBivariateSpline(
         topo.ygrid, topo.xgrid, topo.value)
@@ -103,28 +108,27 @@ def ex_2():
     mesh.value = zfun(
         apos[:, 1], apos[:, 0], grid=False)
 
+    cell = mesh.tria3["index"]
+
     zmsk = \
-    mesh.value[mesh.tria3["index"][:,0]] + \
-    mesh.value[mesh.tria3["index"][:,1]] + \
-    mesh.value[mesh.tria3["index"][:,2]]
+        mesh.value[cell[:, 0]] + \
+        mesh.value[cell[:, 1]] + \
+        mesh.value[cell[:, 2]]
     zmsk = zmsk / +3.0
 
     mesh.tria3 = mesh.tria3[zmsk < +0.]
 
-    
-    print("Writing ex_b.vtk file.")
+    print("Saving to ../cache/case_2a.vtk")
 
-    jigsawpy.savevtk(
-        str(Path(dst_path)/"sp_b.vtk"), hfun)
+    jigsawpy.savevtk(os.path.join(
+        dst_path, "case_2a.vtk"), mesh)
 
-    jigsawpy.savevtk(
-        str(Path(dst_path)/"ex_b.vtk"), mesh)
+    print("Saving to ../cache/case_2b.vtk")
 
+    jigsawpy.savevtk(os.path.join(
+        dst_path, "case_2b.vtk"), hfun)
 
     return
 
 
 if (__name__ == "__main__"): ex_2()
-
-
-

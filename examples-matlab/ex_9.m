@@ -3,30 +3,30 @@ function ex_9
 % region, using topography as a mesh-spacing indicator. A
 % local stereographic projection is employed.
 
-    addpath('../jigsaw-matlab') ;
-
     initjig;                            % load jigsaw
 
 %------------------------------------ setup files for JIGSAW
 
     rootpath = fileparts( ...
-        mfilename( 'fullpath' ) ) ;
+        mfilename( 'fullpath' )) ;
+    rootpath = ...
+        fullfile(rootpath, '..') ;
 
     opts.geom_file = ...                % domain file
         fullfile(rootpath,...
-        'cache','aust-proj.msh') ;
+            'cache', 'proj.msh') ;
     
     opts.jcfg_file = ...                % config file
         fullfile(rootpath,...
-        'cache','aust.jig') ;
+            'cache', 'aust.jig') ;
 
     opts.mesh_file = ...                % output file
         fullfile(rootpath,...
-        'cache','aust-mesh.msh') ;
+            'cache', 'mesh.msh') ;
 
     opts.hfun_file = ...                % sizing file
         fullfile(rootpath,...
-        'cache','aust-hfun.msh') ;
+            'cache', 'spac.msh') ;
     
 %------------------------------------ define JIGSAW geometry
 
@@ -59,7 +59,7 @@ function ex_9
     hmat = max(hmat,hmin);
     hmat = min(hmat,hmax); 
 
-    dhdx = +.175 *ones(size(hmat)) ;    % smoothing limits
+    dhdx = +.150 *ones(size(hmat)) ;    % smoothing limits
 
     hfun.mshID = 'ELLIPSOID-GRID';
     hfun.radii = 6371.E+00;
@@ -104,7 +104,6 @@ function ex_9
     
     opts.mesh_eps1 = +1.0E+00 ;         % relax edge error
 
-   %opts.optm_qlim = +9.5E-01 ;         % tighter opt. tol
     opts.optm_iter = +32;
     opts.optm_qtol = +1.0E-05 ;
     

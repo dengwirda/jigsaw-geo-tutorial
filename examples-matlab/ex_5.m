@@ -4,26 +4,26 @@ function ex_5
 % resolution is 150KM, background resolution is 99KM and the 
 % min. adaptive resolution is 33KM.
 
-    addpath('../jigsaw-matlab') ;
-
     initjig;                            % load jigsaw
 
 %------------------------------------ setup files for JIGSAW
 
     rootpath = fileparts( ...
-        mfilename( 'fullpath' ) ) ;
+        mfilename( 'fullpath' )) ;
+    rootpath = ...
+        fullfile(rootpath, '..') ;
 
     opts.geom_file = ...                % domain file
         fullfile(rootpath,...
-        'cache','globe-geom.msh') ;
+            'cache', 'eSPH.msh') ;
     
     opts.jcfg_file = ...                % config file
         fullfile(rootpath,...
-        'cache','globe.jig') ;
+            'cache', 'eSPH.jig') ;
     
     opts.hfun_file = ...                % sizing file
         fullfile(rootpath,...
-        'cache','globe-hfun.msh') ;
+            'cache', 'spac.msh') ;
     
 %------------------------------------ define JIGSAW geometry
 
@@ -55,12 +55,13 @@ function ex_5
     htop = min(htop,hfn3);
     htop(zlev>0.) = hfn0 ;
     
-    hfun(YPOS>=30.) = htop(YPOS>=30.) ;
+    hfun(YPOS>=40.) = htop(YPOS>=40.) ;
 
 %------------------------------------ set HFUN grad.-limiter
     
     dhdx = +.025;                       % max. gradients
-       
+   %dhdx = +0.05;    
+   
     hraw.mshID = 'ELLIPSOID-GRID' ;
     hraw.radii = geom.radii ;
     hraw.point.coord{1} = xpos*pi/180 ;

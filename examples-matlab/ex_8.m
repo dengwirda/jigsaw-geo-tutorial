@@ -1,30 +1,30 @@
 function ex_8
 % DEMO-8: build regional meshes via stereographic projection
 
-    addpath('../jigsaw-matlab') ;
-
     initjig;                            % load jigsaw
 
 %------------------------------------ setup files for JIGSAW
 
     rootpath = fileparts( ...
         mfilename( 'fullpath' ) ) ;
+    rootpath = ...
+        fullfile(rootpath, '..') ;
 
     opts.geom_file = ...                % domain file
         fullfile(rootpath,...
-        'cache','paci-proj.msh') ;
+            'cache', 'proj.msh') ;
     
     opts.jcfg_file = ...                % config file
         fullfile(rootpath,...
-        'cache','paci.jig') ;
+            'cache', 'paci.jig') ;
 
     opts.mesh_file = ...                % output file
         fullfile(rootpath,...
-        'cache','paci-mesh.msh') ;
+            'cache', 'mesh.msh') ;
 
     opts.hfun_file = ...                % sizing file
         fullfile(rootpath,...
-        'cache','paci-hfun.msh') ;
+            'cache', 'spac.msh') ;
     
 %------------------------------------ define JIGSAW geometry
 
@@ -80,8 +80,7 @@ function ex_8
     opts.mesh_dims = +2 ;               % 2-dim. simplexes
 
     opts.mesh_eps1 = +1.0E+00 ;         % relax edge error
-    
-   %opts.optm_qlim = +9.5E-01 ;         % tighter opt. tol
+  
     opts.optm_iter = +32;
     opts.optm_qtol = +1.0E-05 ;
     
