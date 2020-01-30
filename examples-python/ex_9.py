@@ -134,9 +134,23 @@ def ex_9():
 
 #------------------------------------ do stereographic proj.
 
-    msph = copy.copy(mesh)
+    msph = copy.deepcopy(mesh)
 
     jigsawpy.project(msph, proj, "inv")
+
+    radii = np.full(
+        +3, proj.radii,
+        dtype=jigsawpy.jigsaw_msh_t.REALS_t)
+
+    msph.vert3 = np.zeros(
+        (msph.vert2.size),
+        dtype=jigsawpy.jigsaw_msh_t.VERT3_t)
+
+    msph.vert3["coord"] = \
+        jigsawpy.S2toR3(
+            radii, msph.point["coord"])
+
+    msph.vert2 = None
 
 #------------------------------------ save mesh for Paraview
 
@@ -153,7 +167,7 @@ def ex_9():
     print("Saving to ../cache/case_9c.vtk")
 
     jigsawpy.savevtk(os.path.join(
-        dst_path, "case_9c.vtk"), mesh)
+        dst_path, "case_9c.vtk"), msph)
 
     return
 

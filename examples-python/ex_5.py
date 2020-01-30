@@ -80,7 +80,7 @@ def ex_5():
 
 #------------------------------------ set HFUN grad.-limiter
 
-    hlim = copy.copy(hraw)
+    hlim = copy.deepcopy(hraw)
 
     hlim.slope = np.full(               # |dH/dx| limits
         topo.value.shape,

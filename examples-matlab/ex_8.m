@@ -13,7 +13,7 @@ function ex_8
     opts.geom_file = ...                % domain file
         fullfile(rootpath,...
             'cache', 'proj.msh') ;
-    
+
     opts.jcfg_file = ...                % config file
         fullfile(rootpath,...
             'cache', 'paci.jig') ;
@@ -25,7 +25,7 @@ function ex_8
     opts.hfun_file = ...                % sizing file
         fullfile(rootpath,...
             'cache', 'spac.msh') ;
-    
+
 %------------------------------------ define JIGSAW geometry
 
     geom = loadmsh( ...
@@ -55,7 +55,7 @@ function ex_8
 
     geom.point.coord(:,1:2) = ...
     geom.point.coord(:,1:2) * pi/180. ;
-    
+
     proj.prjID = 'STEREOGRAPHIC' ;
     proj.radii = 6371.E+00;
     proj.xbase = .5 * ( ...
@@ -64,29 +64,29 @@ function ex_8
     proj.ybase = .5 * ( ...
         min(geom.point.coord(:,2)) ...
       + max(geom.point.coord(:,2))) ;
-  
+
     GEOM = project(geom,proj,'fwd') ;
     HFUN = project(hfun,proj,'fwd') ;
 
     savemsh (opts.geom_file,GEOM) ;
     savemsh (opts.hfun_file,HFUN) ;
-    
-%------------------------------------ build mesh via JIGSAW! 
-    
+
+%------------------------------------ build mesh via JIGSAW!
+
     opts.hfun_scal = 'absolute' ;
     opts.hfun_hmin = +0.0 ;
     opts.hfun_hmax = +inf ;             % null HFUN limits
-    
+
     opts.mesh_dims = +2 ;               % 2-dim. simplexes
 
     opts.mesh_eps1 = +1.0E+00 ;         % relax edge error
-  
+
     opts.optm_iter = +32;
     opts.optm_qtol = +1.0E-05 ;
-    
+
     MESH = jigsaw(opts) ;
 
-%------------------------------------ transform on to sphere 
+%------------------------------------ transform on to sphere
 
     mesh = project(MESH,proj,'inv') ;
 
@@ -99,13 +99,13 @@ function ex_8
     radii, geom.point.coord(:,1:2)) ;
 
 %------------------------------------ display JIGSAW outputs
-  
+
     plotplanar(GEOM,MESH,HFUN) ;
 
-    drawnow ;        
+    drawnow ;
     set(figure(1),'units','normalized', ...
     'position',[.05,.50,.25,.30]) ;
-    
+
     set(figure(2),'units','normalized', ...
     'position',[.30,.50,.25,.30]) ;
 

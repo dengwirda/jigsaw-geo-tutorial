@@ -97,12 +97,12 @@ def ex_8():
 #------------------------------------ make mesh using JIGSAW
 
     opts.hfun_scal = "absolute"
-    opts.hfun_hmax = float("inf")   # null HFUN limits
+    opts.hfun_hmax = float("inf")       # null HFUN limits
     opts.hfun_hmin = float(+0.00)
 
-    opts.mesh_dims = +2             # 2-dim. simplexes
+    opts.mesh_dims = +2                 # 2-dim. simplexes
 
-    opts.mesh_eps1 = +1.0E+00       # relax edge error
+    opts.mesh_eps1 = +1.0E+00           # relax edge error
 
     opts.optm_iter = +32
     opts.optm_qtol = +1.0E-05
@@ -111,9 +111,23 @@ def ex_8():
 
 #------------------------------------ do stereographic proj.
 
-    msph = copy.copy(mesh)
+    msph = copy.deepcopy(mesh)
 
     jigsawpy.project(msph, proj, "inv")
+
+    radii = np.full(
+        +3, proj.radii,
+        dtype=jigsawpy.jigsaw_msh_t.REALS_t)
+
+    msph.vert3 = np.zeros(
+        (msph.vert2.size),
+        dtype=jigsawpy.jigsaw_msh_t.VERT3_t)
+
+    msph.vert3["coord"] = \
+        jigsawpy.S2toR3(
+            radii, msph.point["coord"])
+
+    msph.vert2 = None
 
 #------------------------------------ save mesh for Paraview
 

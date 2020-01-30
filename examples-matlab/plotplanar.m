@@ -1,6 +1,6 @@
 function plotplanar(geom,mesh,hfun)
 %PLOT-PLANAR draw JIGSAW output for meshes on planes.
-  
+
     if (~isempty(geom))
 %------------------------------------ draw domain boundaries
         figure('color','w');
@@ -29,7 +29,7 @@ function plotplanar(geom,mesh,hfun)
         view(2); axis image; hold on ;
         shading interp;
         title('JIGSAW HFUN data') ;
-        
+
         case{'EUCLIDEAN-MESH', ...
              'ELLIPSOID-MESH'}
 %------------------------------------ disp. 'mesh' functions
@@ -40,8 +40,8 @@ function plotplanar(geom,mesh,hfun)
             'facecolor','flat', ...
             'edgecolor','none') ;
         view(2); axis image; hold on ;
-        title('JIGSAW HFUN data') ;      
-    end 
+        title('JIGSAW HFUN data') ;
+    end
     end
 
     if (~isempty(mesh))
@@ -53,7 +53,7 @@ function plotplanar(geom,mesh,hfun)
             'vertices',mesh.point.coord(:,1:2), ...
             'facecolor','w', ...
             'edgecolor',[.2,.2,.2]) ;
-        hold on; axis image;    
+        hold on; axis image;
         else
         for ip = 1 : max(P)
         I = P == ip;
@@ -80,7 +80,7 @@ function plotplanar(geom,mesh,hfun)
 
         drawcost (mesh,hfun) ;
     end
-    
+
 end
 
 

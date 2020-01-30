@@ -7,7 +7,7 @@ function plotsphere(geom,mesh,hfun,topo)
         zlev = reshape( ...
         topo.value,length(ypos),length(xpos));
     else
-        zlev = [] ;    
+        zlev = [] ;
     end
 
     if (~isempty(hfun))
@@ -23,7 +23,7 @@ function plotsphere(geom,mesh,hfun,topo)
             vals = hfun.value ;
             vals(zlev>0.) = inf ;
         else
-            vals = hfun.value ;    
+            vals = hfun.value ;
         end
         figure('color','w');
         surf(hfun.point.coord{1}*180/pi, ...
@@ -31,12 +31,12 @@ function plotsphere(geom,mesh,hfun,topo)
              vals) ;
         view(2); axis image; hold on ;
         shading interp;
-        title('JIGSAW HFUN data') ; 
-    end    
+        title('JIGSAW HFUN data') ;
     end
-    
+    end
+
     if (~isempty(mesh))
-%------------------------------------ draw unstructured mesh 
+%------------------------------------ draw unstructured mesh
     if (~isempty(topo))
         tlev = findalt( ...
             geom,mesh,xpos,ypos,zlev);
@@ -67,7 +67,7 @@ function plotsphere(geom,mesh,hfun,topo)
     end
     drawcost(mesh, hfun) ;
     end
-    
+
 end
 
 function [zlev] = ...
@@ -76,12 +76,12 @@ function [zlev] = ...
 
     xsph = R3toS2( ...
         geom.radii, mesh.point.coord(:, 1:3));
-             
+
     xlat = xsph(:,2) * 180 / pi;
     xlon = xsph(:,1) * 180 / pi;
-    
+
     xlev = interp2 (alon,alat,topo,xlon,xlat);
-    
+
     zlev = xlev (mesh.tria3.index(:,1)) ...
          + xlev (mesh.tria3.index(:,2)) ...
          + xlev (mesh.tria3.index(:,3)) ;
